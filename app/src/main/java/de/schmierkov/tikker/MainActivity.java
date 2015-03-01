@@ -1,10 +1,7 @@
 package de.schmierkov.tikker;
 
-import android.support.v7.app.ActionBarActivity;
+import android.app.Activity;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,26 +12,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.StatusLine;
 
+import android.content.Intent;
 import android.widget.Button;
 import android.widget.EditText;
 
-//Following imports are necessary for JSON parsing
-import org.json.JSONException;
-import org.json.JSONObject;
+public class MainActivity extends Activity {
+    static String token = "";
 
-public class MainActivity extends ActionBarActivity {
+    public String getToken() {
+        return token;
+    }
 
-    String token;
+    public void setToken(String value) {
+        token = value;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +47,13 @@ public class MainActivity extends ActionBarActivity {
 
         new LoginTask().execute(username.getText().toString(), password.getText().toString());
 
-        button.setEnabled(true);
+        Intent intent = new Intent(this, MessageActivity.class);
+        startActivity(intent);
+    }
+
+    public void showTokenOnClick(View v) {
+        Button button = (Button)findViewById(R.id.button2);
+        button.setText(token);
     }
 
     @Override
@@ -78,61 +78,18 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private boolean login(String username, String password) {
+    private String login(String username, String password) {
         List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
         postParameters.add(new BasicNameValuePair("email", username));
         postParameters.add(new BasicNameValuePair("password", password));
 
-        String result = httpCall("http://192.168.1.36:3000/api/sign_in", postParameters);
+        String result = HttpClient.getLoginToken("http://192.168.1.36:3000/api/sign_in", postParameters);
 
-        System.out.printf(result);
-
-        return true;
+        return result.toString();
     }
 
-    private String httpCall(String url, List<NameValuePair> params) {
-        StringBuffer stringBuffer = new StringBuffer("");
-        BufferedReader bufferedReader = null;
-        HttpClient httpclient = new DefaultHttpClient();
-        HttpPost request = new HttpPost(url);
-
-        try {
-            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params);
-            request.setEntity(entity);
-
-            HttpResponse response = httpclient.execute(request);
-
-            bufferedReader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-
-            String line = "";
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuffer.append(line);
-            }
-            bufferedReader.close();
-
-            System.out.printf(stringBuffer.toString());
-
-        } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } finally {
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-        }
-        return stringBuffer.toString();
-    }
-
-    private class LoginTask extends AsyncTask<String, Void, Boolean> {
-        protected Boolean doInBackground(String... arg0) {
+    private class LoginTask extends AsyncTask<String, Void, String> {
+        protected String doInBackground(String... arg0) {
             return login(arg0[0], arg0[1]);
         }
 
@@ -140,8 +97,8 @@ public class MainActivity extends ActionBarActivity {
             // setProgressPercent(progress[0]);
         }
 
-        protected void onPostExecute(Long result) {
-            // showDialog("Downloaded " + result + " bytes");
+        protected void onPostExecute(String result) {
+            setToken(result);
         }
     }
 }
