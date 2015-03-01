@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 
 public class HttpClient {
@@ -47,7 +46,6 @@ public class HttpClient {
 
     private static String get(String token, String url) {
         StringBuffer stringBuffer = new StringBuffer("");
-        String login_token = "";
         BufferedReader bufferedReader = null;
         org.apache.http.client.HttpClient httpclient = new DefaultHttpClient();
         HttpGet request = new HttpGet(url + "?token=" + token);
@@ -78,7 +76,6 @@ public class HttpClient {
 
     private static String post(String url, List<NameValuePair> params) {
         StringBuffer stringBuffer = new StringBuffer("");
-        String login_token = "";
         BufferedReader bufferedReader = null;
         org.apache.http.client.HttpClient httpclient = new DefaultHttpClient();
         HttpPost request = new HttpPost(url);

@@ -25,9 +25,6 @@ public class MessageActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message);
 
-        TextView text = (TextView)findViewById(R.id.textView);
-        text.setText(MainActivity.token);
-
         new GetMessagesTask().execute(MainActivity.token, "http://192.168.1.36:3000/api/v1/messages");
     }
 
@@ -87,8 +84,7 @@ public class MessageActivity extends ActionBarActivity {
         }
 
         protected void onPostExecute(JSONArray result) {
-            TextView text = (TextView)findViewById(R.id.textView);
-            text.setText(result.toString());
+            printMessages(result);
         }
     }
 
