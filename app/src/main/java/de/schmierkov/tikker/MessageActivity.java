@@ -44,6 +44,8 @@ public class MessageActivity extends ActionBarActivity {
         message = (EditText)findViewById(R.id.message);
 
         new SendMessageTask().execute(MainActivity.token, message.getText().toString());
+
+        message.setText("");
     }
 
     @Override
