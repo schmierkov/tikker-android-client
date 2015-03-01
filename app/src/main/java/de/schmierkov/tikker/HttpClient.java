@@ -14,19 +14,38 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HttpClient {
     public static String getLoginToken(String url, List<NameValuePair> params) {
         try {
-            return post(url, params).getString("token");
+            return new JSONObject(post(url, params)).getString("token");
         } catch (JSONException e) {
             e.printStackTrace();
             return "";
         }
     }
 
-    public static JSONArray get(String url, String token) {
+    public static JSONArray getMessages(String token, String url) {
+        try {
+            return new JSONArray(get(token, url));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return new JSONArray();
+        }
+    }
+
+    public static JSONArray sendMessage(String token, String url, List<NameValuePair> params) {
+        try {
+            return new JSONArray(post(url + "?token=" + token, params));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return new JSONArray();
+        }
+    }
+
+    private static String get(String token, String url) {
         StringBuffer stringBuffer = new StringBuffer("");
         String login_token = "";
         BufferedReader bufferedReader = null;
@@ -41,13 +60,9 @@ public class HttpClient {
                 stringBuffer.append(line);
             }
             bufferedReader.close();
-
-            return new JSONArray(stringBuffer.toString());
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
             e.printStackTrace();
         } finally {
             if (bufferedReader != null) {
@@ -58,10 +73,10 @@ public class HttpClient {
                 }
             }
         }
-        return new JSONArray();
+        return stringBuffer.toString();
     }
 
-    private static JSONObject post(String url, List<NameValuePair> params) {
+    private static String post(String url, List<NameValuePair> params) {
         StringBuffer stringBuffer = new StringBuffer("");
         String login_token = "";
         BufferedReader bufferedReader = null;
@@ -78,14 +93,9 @@ public class HttpClient {
                 stringBuffer.append(line);
             }
             bufferedReader.close();
-
-            JSONObject json = new JSONObject(stringBuffer.toString());
-            return json;
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
             e.printStackTrace();
         } finally {
             if (bufferedReader != null) {
@@ -96,6 +106,6 @@ public class HttpClient {
                 }
             }
         }
-        return new JSONObject();
+        return stringBuffer.toString();
     }
 }
