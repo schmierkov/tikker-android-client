@@ -1,5 +1,7 @@
 package de.schmierkov.tikker;
 
+import de.schmierkov.tikker.model.Message;
+
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -23,34 +25,32 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class MessageActivity extends ActionBarActivity {
-
-    class Message {
-        public String id;
-        public String text;
-        public String date;
-        public String user;
-    }
-
-    ArrayList<Message> messageItems = new ArrayList<Message>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message);
 
+        ListView listView = (ListView)findViewById(R.id.listView);
+        listView.setAdapter(new MessageAdapter());
+
         new GetMessagesTask().execute(MainActivity.token, "http://192.168.1.36:3000/api/v1/messages");
     }
 
     private void makeList(JSONArray messages) {
+        DatabaseHelper db = new DatabaseHelper(this);
+
         try {
             for(int i=0;i<messages.length();i++) {
                 JSONObject json_data = messages.getJSONObject(i);
                 Message message = new Message();
 
-                message.id   = json_data.getString("id");
-                message.text = json_data.getString("text");
-                messageItems.add(message);
+                message.setId(Integer.parseInt(json_data.getString("id")));
+                message.setText(json_data.getString("text"));
+
+                db.addMessage(message);
+                db.getAllMessages();
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -59,10 +59,6 @@ public class MessageActivity extends ActionBarActivity {
 
     private void printMessages(JSONArray messages) {
         makeList(messages);
-
-        ListView listView = (ListView)findViewById(R.id.listView);
-        listView.setAdapter(new MessageAdapter());
-
         System.out.printf(messages.toString());
     }
 
@@ -83,6 +79,7 @@ public class MessageActivity extends ActionBarActivity {
             } else {
                 holder = (ViewHolder)convertView.getTag();
             }
+
             holder.populateFrom(messageItems.get(position));
 
             return convertView;
@@ -133,19 +130,12 @@ public class MessageActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
         if (id == R.id.action_logout) {
             Intent intent = new Intent(this, MainActivity.class);
             this.startActivity(intent);
-
-            return true;
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     private class GetMessagesTask extends AsyncTask<String, Void, JSONArray> {
